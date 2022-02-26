@@ -10,6 +10,6 @@ data class Response(
     val learns: List<String>,
     val natives: List<String>,
     val pictureUrl: String, // https://tandem2019.web.app/img/pic1.png
-    val referenceCnt: Int, // 0
+    val referenceCnt: Int,
     val topic: String // What's something not many people know about you?
 )
