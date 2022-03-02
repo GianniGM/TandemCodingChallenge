@@ -1,5 +1,6 @@
 package com.giannig.tandemlite.api
 
+import com.giannig.tandemlite.api.Moshi.moshi
 import com.giannig.tandemlite.api.dto.TandemApiDto
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -11,21 +12,27 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 /**
  * todo
  */
+object Moshi {
+    val moshi = Moshi
+        .Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
+}
+
+/**
+ * todo
+ */
 object TandemNetworkService {
 
-    suspend fun getTandemUserFromApis(page: Int = 1): TandemApiDto = retrofit
-        .getTandemUsers(page)
+    suspend fun getTandemUserFromApis(page: Int = 1): TandemApiDto {
+        return retrofit.getTandemUsers(page)
+    }
 
     private fun getClient(): OkHttpClient {
         val interceptor = HttpLoggingInterceptor()
         interceptor.apply { interceptor.level = HttpLoggingInterceptor.Level.BODY }
         return OkHttpClient.Builder().addInterceptor(interceptor).build()
     }
-
-    private val moshi = Moshi
-        .Builder()
-        .add(KotlinJsonAdapterFactory())
-        .build()
 
     private val retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
