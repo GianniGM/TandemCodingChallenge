@@ -22,7 +22,7 @@ class TandemViewModel(
 ) : ViewModel() {
 
     val getUsersMutableState: MutableState<ViewModelState> = mutableStateOf(ViewModelState.Loading)
-    private var loadUsersJob: Job? = null
+    private var loadUsersJob: Job? = Job()
 
 
     /**
