@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">TandemLite</string>
+    <string name="native_language">native:</string>
+    <string name="learns">learns:</string>
+    <string name="new_string">new</string>
+    <string name="no_users_text">No users here</string>
+    <string name="community_string">Community</string>
 </resources>

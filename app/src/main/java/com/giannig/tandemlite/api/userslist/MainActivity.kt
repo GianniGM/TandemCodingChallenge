@@ -14,10 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.giannig.tandemlite.R
@@ -26,14 +27,11 @@ import com.giannig.tandemlite.api.dto.TandemUser
 import com.giannig.tandemlite.ui.theme.MyApplicationTheme
 import com.skydoves.landscapist.glide.GlideImage
 
-//todo check deps version
 //todo check readme
 //todo remove unused resource
 //todo unit test
 //todo paging
-//todo room
 //todo test error handling
-
 class MainActivity : TandemActivity() {
 
     private val viewModel by lazy {
@@ -46,7 +44,6 @@ class MainActivity : TandemActivity() {
         setContent {
             val usersList = viewModel.getUsersMutableState.value
             MyApplicationTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
@@ -84,8 +81,7 @@ fun MainPage(tandemUserState: ViewModelState) {
             backgroundColor = colorResource(id = android.R.color.white),
             elevation = 16.dp,
             title = {
-                //todo remove hardcoded value
-                Text(text = "Community")
+                Text(text = stringResource(R.string.community_string))
             },
         )
         UserList(tandemUserState)
@@ -95,9 +91,15 @@ fun MainPage(tandemUserState: ViewModelState) {
 
 @Composable
 private fun UserList(tandemUsersState: ViewModelState) = when (tandemUsersState) {
-    ViewModelState.Empty -> Text(text = "No users here", color = Color.Black)
+    ViewModelState.Empty -> Text(
+        text = stringResource(R.string.no_users_text),
+        color = Color.Black
+    )
     ViewModelState.Loading -> SetUpLoadingView()
-    is ViewModelState.ShowErrorMessage -> Text(text = tandemUsersState.errorText.toString(), color = Color.Blue)
+    is ViewModelState.ShowErrorMessage -> Text(
+        text = tandemUsersState.errorText.toString(),
+        color = Color.Blue
+    )
     is ViewModelState.ShowUserList -> TandemUserList(tandemUsersState)
 }
 
@@ -123,7 +125,7 @@ fun TandemUserList(tandemUserList: ViewModelState.ShowUserList) {
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         tandemUserList.userList.forEach {
@@ -139,14 +141,18 @@ fun TandemUserList(tandemUserList: ViewModelState.ShowUserList) {
 fun ProfileCardComposable(user: TandemUser) {
     Card(
         modifier = Modifier
-            .wrapContentSize()
+            .wrapContentWidth()
+            .fillMaxWidth()
             .clip(RoundedCornerShape(4.dp))
             .background(color = colorResource(id = android.R.color.white))
             .padding(8.dp),
     ) {
-        Row(modifier = Modifier
-            .height(intrinsicSize = IntrinsicSize.Max)
-            .padding(8.dp)
+        Row(
+            modifier = Modifier
+                .wrapContentWidth()
+                .fillMaxWidth()
+                .height(intrinsicSize = IntrinsicSize.Max)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             ProfilePictureComposable(user.pictureUrl, user.firstName)
             ProfileContentComposable(user)
@@ -175,41 +181,98 @@ fun ProfilePictureComposable(pictureUrl: String, firstName: String) {
 fun ProfileContentComposable(user: TandemUser) {
     Column(
         modifier = Modifier
-            .fillMaxHeight()
-            .padding(start = 8.dp),
-        verticalArrangement = Arrangement.aligned(Alignment.CenterVertically)
+            .fillMaxSize()
+            .padding(start = 16.dp, bottom = 8.dp)
     ) {
+        CardHeader(user)
+
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
         ) {
-            Text(user.firstName, fontWeight = FontWeight.Bold)
-            if(user.referenceCnt == 0){
-                Text("new", fontWeight = FontWeight.Bold)
-            }else{
-                Text(user.referenceCnt.toString(), fontWeight = FontWeight.Bold)
-            }
+            Text(
+                text = user.topic,
+                style = MaterialTheme.typography.body2,
+            )
         }
 
-        Text(
-            text = user.topic,
-            style = MaterialTheme.typography.body2
-        )
-        FootNotes(user.natives, user.learns)
+        CardFooter(user)
     }
 }
 
 @Composable
-private fun FootNotes(natives: List<String>, learns: List<String>) {
-    Row {
-        Text(text = "native")
-        natives.forEach {
-            Text(text = it)
+private fun CardHeader(user: TandemUser) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                user.firstName,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.CenterStart)
+            )
+
+            val refCountText = user.referenceCnt
+                .takeIf { it > 0 }
+                ?.toString()
+                ?: stringResource(R.string.new_string)
+
+            Text(
+                text = refCountText,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.CenterEnd)
+            )
         }
-        Text(text = "learns")
-        learns.forEach {
-            Text(text = it)
-        }
-        Text(text = "like")
     }
 }
+
+@Composable
+private fun CardFooter(user: TandemUser) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .wrapContentWidth()
+                .weight(1f)
+        ) {
+            Text(
+                textAlign = TextAlign.Start,
+                text = stringResource(R.string.native_language),
+                modifier = Modifier.padding(start = 0.dp, end = 2.dp)
+            )
+            user.natives.forEach {
+                Text(text = "$it, ")
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .wrapContentWidth()
+                .weight(1f)
+        ) {
+            Text(
+                text = stringResource(R.string.learns),
+                modifier = Modifier.padding(start = 0.dp, end = 4.dp),
+            )
+            user.learns.forEach {
+                Text(text = "$it, ")
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .wrapContentWidth()
+                .weight(0.4f)
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "like",
+                textAlign = TextAlign.End,
+            )
+        }
+    }
+}
+
+
+
+
+
 
