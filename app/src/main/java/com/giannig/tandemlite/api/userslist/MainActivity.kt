@@ -1,10 +1,9 @@
-package com.giannig.tandemlite
+package com.giannig.tandemlite.api.userslist
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
+import com.giannig.tandemlite.R
+import com.giannig.tandemlite.TandemActivity
 
 //todo check deps version
 //todo check readme
@@ -14,10 +13,10 @@ import androidx.lifecycle.ViewModelProvider
 //todo room
 //todo test error handling
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : TandemActivity() {
 
     private val viewModel by lazy {
-        ViewModelProvider(this, ViewModelFactory()).get(TandemViewModel::class.java)
+        createViewModel(TandemViewModel::class.java)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

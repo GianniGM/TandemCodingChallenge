@@ -1,12 +1,12 @@
-package com.giannig.tandemlite
+package com.giannig.tandemlite.api.userslist
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.giannig.tandemlite.api.dto.Response
-import com.giannig.tandemlite.api.dto.TandemApiDto
-import kotlinx.coroutines.flow.catch
+import com.giannig.tandemlite.api.repositories.TandemApiState
+import com.giannig.tandemlite.api.repositories.TandemRepository
+import com.giannig.tandemlite.api.dto.TandemUser
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -27,14 +27,14 @@ class TandemViewModel(
      * todo add doc
      */
     fun getUsersFromApi() = viewModelScope.launch {
-        tandemRepository.loadTandemUsers()
+        tandemRepository.getTandemUsers()
             .onStart {
                 ViewModelState.Loading
             }
             .map {state ->
                 when(state){
                     is TandemApiState.Error -> ViewModelState.ShowErrorMessage(state.errorType)
-                    is TandemApiState.Success -> returnUserList(state.tandemApiDto.response)
+                    is TandemApiState.Success -> returnUserList(state.users)
                 }
             }
             .collect {
@@ -42,11 +42,11 @@ class TandemViewModel(
             }
     }
 
-    private fun returnUserList(response: List<Response>): ViewModelState {
-        return if(response.isEmpty()){
+    private fun returnUserList(tandemUser: List<TandemUser>): ViewModelState {
+        return if(tandemUser.isEmpty()){
             ViewModelState.Empty
         }else{
-            ViewModelState.ShowUserList(response)
+            ViewModelState.ShowUserList(tandemUser)
         }
     }
 
@@ -70,7 +70,7 @@ sealed interface ViewModelState {
     /**
      * todo add doc
      */
-    data class ShowUserList(val userList: List<Response>) : ViewModelState
+    data class ShowUserList(val userList: List<TandemUser>) : ViewModelState
 
     /**
      * todo add doc
