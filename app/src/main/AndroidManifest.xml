@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TandemLite">
         <activity
-            android:name=".api.userslist.MainActivity"
+            android:name="com.giannig.tandemlite.userslist.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

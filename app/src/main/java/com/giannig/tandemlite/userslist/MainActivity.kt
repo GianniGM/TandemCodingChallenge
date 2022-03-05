@@ -1,4 +1,4 @@
-package com.giannig.tandemlite.api.userslist
+package com.giannig.tandemlite.userslist
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -21,11 +21,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.items
 import com.giannig.tandemlite.R
 import com.giannig.tandemlite.TandemActivity
 import com.giannig.tandemlite.api.dto.TandemUser
 import com.giannig.tandemlite.ui.theme.MyApplicationTheme
 import com.skydoves.landscapist.glide.GlideImage
+import kotlinx.coroutines.flow.Flow
 
 //todo check readme
 //todo remove unused resource
@@ -40,15 +46,13 @@ class MainActivity : TandemActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel.getUsersFromApi()
         setContent {
-            val usersList = viewModel.getUsersMutableState.value
             MyApplicationTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    MainPage(usersList)
+                    MainPage(viewModel.getUsersMutableState)
                 }
             }
         }
@@ -56,26 +60,8 @@ class MainActivity : TandemActivity() {
 }
 
 
-@Preview(showBackground = true)
 @Composable
-fun DefaultPreview() {
-    val user = TandemUser(
-        id = 999,
-        firstName = "Gianni",
-        learns = listOf("DE", "IT"),
-        natives = listOf("BA", "NA"),
-        referenceCnt = 33,
-        pictureUrl = "https://pluspng.com/img-png/png-user-icon-circled-user-icon-2240.png",
-        topic = "I like to learn new things"
-    )
-    val users = listOf(user, user, user, user, user)
-    MyApplicationTheme {
-        TandemUserList(ViewModelState.ShowUserList(users))
-    }
-}
-
-@Composable
-fun MainPage(tandemUserState: ViewModelState) {
+fun MainPage(tandemUserState: Flow<PagingData<TandemUser>>) {
     Column {
         TopAppBar(
             backgroundColor = colorResource(id = android.R.color.white),
@@ -84,23 +70,40 @@ fun MainPage(tandemUserState: ViewModelState) {
                 Text(text = stringResource(R.string.community_string))
             },
         )
-        UserList(tandemUserState)
+        TandemUserList(tandemUserState)
     }
 }
 
-
 @Composable
-private fun UserList(tandemUsersState: ViewModelState) = when (tandemUsersState) {
-    ViewModelState.Empty -> Text(
-        text = stringResource(R.string.no_users_text),
-        color = Color.Black
-    )
-    ViewModelState.Loading -> SetUpLoadingView()
-    is ViewModelState.ShowErrorMessage -> Text(
-        text = tandemUsersState.errorText.toString(),
-        color = Color.Blue
-    )
-    is ViewModelState.ShowUserList -> TandemUserList(tandemUsersState)
+fun TandemUserList(tandemUserList: Flow<PagingData<TandemUser>>) {
+    val userlistItems: LazyPagingItems<TandemUser> = tandemUserList.collectAsLazyPagingItems()
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        items(items = userlistItems) { user ->
+            user?.let {
+                ProfileCardComposable(user)
+            }
+        }
+    }
+    userlistItems.run {
+        when (val state = loadState.refresh) {
+            LoadState.Loading -> SetUpLoadingView()
+            is LoadState.NotLoading,
+            is LoadState.Error -> {
+                Text(
+                    text = state.toString(),
+                    color = Color.Blue
+                )
+            }
+
+        }
+    }
 }
 
 @Composable
@@ -116,23 +119,6 @@ private fun SetUpLoadingView() {
             color = Color.LightGray,
             modifier = Modifier.padding(16.dp)
         )
-    }
-}
-
-@Composable
-fun TandemUserList(tandemUserList: ViewModelState.ShowUserList) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        tandemUserList.userList.forEach {
-            item {
-                ProfileCardComposable(it)
-            }
-        }
     }
 }
 

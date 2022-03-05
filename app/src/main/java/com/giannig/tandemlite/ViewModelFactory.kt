@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.giannig.tandemlite.api.db.TandemDao
 import com.giannig.tandemlite.api.repositories.TandemRepository
-import com.giannig.tandemlite.api.userslist.TandemViewModel
+import com.giannig.tandemlite.userslist.TandemViewModel
 import java.lang.IllegalArgumentException
 
 /**
