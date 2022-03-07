@@ -3,6 +3,7 @@ package com.giannig.tandemlite.paging
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.giannig.tandemlite.api.TandemNetworkService
+import com.giannig.tandemlite.api.db.TandemDao
 import com.giannig.tandemlite.api.dto.TandemUser
 import retrofit2.HttpException
 import java.io.IOException
@@ -16,13 +17,15 @@ data class TandemException(val errorCode: String, val errorMessage:String): Exce
 /**
  * todo
  */
-class TandemPagingSource : PagingSource<Int, TandemUser>() {
+class TandemPagingSource(private val tandemDao: TandemDao) : PagingSource<Int, TandemUser>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, TandemUser> {
         val position = params.key ?: STARTING_PAGE_INDEX
         return try {
             val dto = TandemNetworkService.getTandemUserFromApis(position)
-            val users = dto.response
+            val usersFromApi = dto.response
+            val users = joinByLikes(usersFromApi)
+
             if(dto.errorCode == null){
                 LoadResult.Page(
                     data = users,
@@ -30,15 +33,39 @@ class TandemPagingSource : PagingSource<Int, TandemUser>() {
                     nextKey = if (users.isEmpty()) null else position + 1
                 )
             }else{
-               throw TandemException(dto.errorCode, dto.type)
+                LoadResult.Error(TandemException(dto.errorCode, dto.type))
             }
         } catch (exception: IOException) {
             return LoadResult.Error(exception)
         } catch (exception: HttpException) {
-            return LoadResult.Error(exception)
-        } catch (exception: TandemException) {
-            return LoadResult.Error(exception)
+            val users = tandemDao.getTandemUsers()
+            return if(users.isEmpty()){
+                LoadResult.Error(exception)
+            }else {
+                LoadResult.Page(
+                    data = users,
+                    prevKey = if (position == STARTING_PAGE_INDEX) null else position,
+                    nextKey = if (users.isEmpty()) null else position + 1
+                )
+            }
         }
+    }
+
+    private suspend fun joinByLikes(users: List<TandemUser>): List<TandemUser> {
+        val likedUsersFromDb: List<TandemUser>? = tandemDao
+            .getTandemUsers()
+            .groupBy { it.liked }[true]
+
+       val newUserList = users.map { user ->
+           likedUsersFromDb?.let { likedUsers ->
+               if(user in likedUsers){
+                   user.copy(liked = true)
+               }else{
+                   user.copy(liked = false)
+               }
+           }?: user
+       }
+        return newUserList
     }
 
     override fun getRefreshKey(state: PagingState<Int, TandemUser>): Int? {

@@ -7,41 +7,24 @@ import androidx.paging.cachedIn
 import com.giannig.tandemlite.api.repositories.TandemRepository
 import com.giannig.tandemlite.api.dto.TandemUser
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import kotlin.math.tan
 
 /**
  * todo add doc
  */
 class TandemViewModel(
-    tandemRepository: TandemRepository
+    val tandemRepository: TandemRepository
 ) : ViewModel() {
 
-    val getUsersMutableState: Flow<PagingData<TandemUser>> = tandemRepository
+    val getTandemUsersList: Flow<PagingData<TandemUser>> = tandemRepository
         .getSearchResultStream()
         .flow
         .cachedIn(viewModelScope)
 
-
-//    /**
-//     * todo add doc
-//     */
-//    fun getUsersFromApi() {
-//        loadUsersJob.cancelIfActive()
-//        viewModelScope.launch {
-//            tandemRepository.getSearchResultStream()
-//                .map {
-//                    ViewModelState.ShowUserList(it)
-//                }
-//                .onStart<ViewModelState> {
-//                    emit(ViewModelState.Loading)
-//                }
-//                .catch {
-//                    emit(ViewModelState.ShowErrorMessage())
-//                }
-//                .collect {
-//                    getUsersMutableState.value =  it
-//                }
-//        }
-//    }
+    fun likeUser(userId: TandemUser, liked: Boolean) = viewModelScope.launch {
+        tandemRepository.likeUser(userId, liked)
+    }
 
 }
 

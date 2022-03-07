@@ -55,7 +55,7 @@ data class TandemUser(
     @ColumnInfo(name = "reference_cnt")
     val referenceCnt: Int,
 
-    @ColumnInfo(name = "liked")
+    @ColumnInfo(name = "user_liked")
     var liked: Boolean = false,
 
     @ColumnInfo(name = "topic")

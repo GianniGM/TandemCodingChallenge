@@ -19,7 +19,12 @@ class TandemRepository(
                 pageSize = NETWORK_PAGE_SIZE,
                 enablePlaceholders = false
             ),
-            pagingSourceFactory = { TandemPagingSource() }
+            pagingSourceFactory = { TandemPagingSource(tandemDao) }
         )
+    }
+
+    suspend fun likeUser(user: TandemUser, liked: Boolean){
+        val updatedUser = user.copy(liked = liked)
+        tandemDao.update(updatedUser)
     }
 }

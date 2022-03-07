@@ -1,37 +1,41 @@
 package com.giannig.tandemlite.userslist
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
-import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import com.giannig.tandemlite.R
 import com.giannig.tandemlite.TandemActivity
 import com.giannig.tandemlite.api.dto.TandemUser
+import com.giannig.tandemlite.paging.TandemException
 import com.giannig.tandemlite.ui.theme.MyApplicationTheme
 import com.skydoves.landscapist.glide.GlideImage
-import kotlinx.coroutines.flow.Flow
+import kotlin.math.tan
 
 //todo check readme
 //todo remove unused resource
@@ -52,7 +56,7 @@ class MainActivity : TandemActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    MainPage(viewModel.getUsersMutableState)
+                    MainPage(viewModel)
                 }
             }
         }
@@ -61,7 +65,7 @@ class MainActivity : TandemActivity() {
 
 
 @Composable
-fun MainPage(tandemUserState: Flow<PagingData<TandemUser>>) {
+fun MainPage(tandemViewModel: TandemViewModel) {
     Column {
         TopAppBar(
             backgroundColor = colorResource(id = android.R.color.white),
@@ -70,13 +74,15 @@ fun MainPage(tandemUserState: Flow<PagingData<TandemUser>>) {
                 Text(text = stringResource(R.string.community_string))
             },
         )
-        TandemUserList(tandemUserState)
+        TandemUserList(tandemViewModel)
     }
 }
 
 @Composable
-fun TandemUserList(tandemUserList: Flow<PagingData<TandemUser>>) {
-    val userlistItems: LazyPagingItems<TandemUser> = tandemUserList.collectAsLazyPagingItems()
+fun TandemUserList(tandemViewModel: TandemViewModel) {
+    val userlistItems: LazyPagingItems<TandemUser> = tandemViewModel
+        .getTandemUsersList
+        .collectAsLazyPagingItems()
 
     LazyColumn(
         modifier = Modifier
@@ -87,7 +93,9 @@ fun TandemUserList(tandemUserList: Flow<PagingData<TandemUser>>) {
     ) {
         items(items = userlistItems) { user ->
             user?.let {
-                ProfileCardComposable(user)
+                ProfileCardComposable(user) { user ->
+                    tandemViewModel.likeUser(user, !user.liked)
+                }
             }
         }
     }
@@ -96,12 +104,15 @@ fun TandemUserList(tandemUserList: Flow<PagingData<TandemUser>>) {
             LoadState.Loading -> SetUpLoadingView()
             is LoadState.NotLoading,
             is LoadState.Error -> {
-                Text(
-                    text = state.toString(),
-                    color = Color.Blue
-                )
+                val lazyList = tandemViewModel.getTandemUsersList.collectAsLazyPagingItems()
+                Text(text = "refresh", modifier = Modifier.clickable {
+                    lazyList.refresh()
+                })
+                Toast.makeText(
+                    LocalContext.current,
+                    state.toString(), Toast.LENGTH_LONG
+                ).show()
             }
-
         }
     }
 }
@@ -124,7 +135,7 @@ private fun SetUpLoadingView() {
 
 
 @Composable
-fun ProfileCardComposable(user: TandemUser) {
+fun ProfileCardComposable(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
     Card(
         modifier = Modifier
             .wrapContentWidth()
@@ -141,7 +152,7 @@ fun ProfileCardComposable(user: TandemUser) {
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             ProfilePictureComposable(user.pictureUrl, user.firstName)
-            ProfileContentComposable(user)
+            ProfileContentComposable(user, onItemClick)
         }
     }
 }
@@ -164,7 +175,7 @@ fun ProfilePictureComposable(pictureUrl: String, firstName: String) {
 }
 
 @Composable
-fun ProfileContentComposable(user: TandemUser) {
+fun ProfileContentComposable(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -183,7 +194,7 @@ fun ProfileContentComposable(user: TandemUser) {
             )
         }
 
-        CardFooter(user)
+        CardFooter(user, onItemClick)
     }
 }
 
@@ -212,7 +223,7 @@ private fun CardHeader(user: TandemUser) {
 }
 
 @Composable
-private fun CardFooter(user: TandemUser) {
+private fun CardFooter(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -247,12 +258,19 @@ private fun CardFooter(user: TandemUser) {
             modifier = Modifier
                 .wrapContentWidth()
                 .weight(0.4f)
+                .clickable { onItemClick(user) }
         ) {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = "like",
-                textAlign = TextAlign.End,
-            )
+            if (user.liked) {
+                Image(
+                    painterResource(R.drawable.liked),
+                    contentDescription = user.liked.toString()
+                )
+            } else {
+                Image(
+                    painterResource(R.drawable.not_liked),
+                    contentDescription = user.liked.toString()
+                )
+            }
         }
     }
 }
