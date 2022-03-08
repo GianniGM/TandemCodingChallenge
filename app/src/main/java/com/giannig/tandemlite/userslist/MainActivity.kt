@@ -1,10 +1,8 @@
 package com.giannig.tandemlite.userslist
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
@@ -24,6 +22,7 @@ import com.giannig.tandemlite.R
 import com.giannig.tandemlite.TandemActivity
 import com.giannig.tandemlite.api.dto.TandemUser
 import com.giannig.tandemlite.ui.theme.MyApplicationTheme
+import com.giannig.tandemlite.ui.theme.Purple700
 
 //todo check readme
 //todo remove unused resource
@@ -56,10 +55,10 @@ class MainActivity : TandemActivity() {
 fun MainPage(tandemViewModel: TandemViewModel) {
     Column {
         TopAppBar(
-            backgroundColor = colorResource(id = android.R.color.white),
+            backgroundColor = Purple700,
             elevation = 16.dp,
             title = {
-                Text(text = stringResource(R.string.community_string))
+                Text(color = Color.White, text = stringResource(R.string.community_string))
             },
         )
         TandemUserList(tandemViewModel)
@@ -87,14 +86,20 @@ fun TandemUserList(tandemViewModel: TandemViewModel) {
             user?.let {
                 ProfileCardComposable(user) { user ->
                     tandemViewModel.likeUser(user, !user.liked)
+                    usersItems.refresh()
                 }
             }
         }
     }
     usersItems.run {
+        if(loadState.append is LoadState.Loading){
+            LoadingScreen()
+        }
+    }
+    usersItems.run {
         when (val state = loadState.refresh) {
-            LoadState.Loading -> SetUpLoadingView()
-            is LoadState.NotLoading -> {/* todo */}
+            is LoadState.NotLoading,
+            LoadState.Loading -> LoadingScreen()
             is LoadState.Error -> {
                 val lazyList = tandemViewModel.getTandemUsersList.collectAsLazyPagingItems()
                 RefreshButton(lazyList)
@@ -127,7 +132,7 @@ private fun RefreshButton(usersItems: LazyPagingItems<TandemUser>) {
 }
 
 @Composable
-private fun SetUpLoadingView() {
+private fun LoadingScreen() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -136,7 +141,7 @@ private fun SetUpLoadingView() {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         CircularProgressIndicator(
-            color = Color.LightGray,
+            color = Purple700,
             modifier = Modifier.padding(16.dp)
         )
     }
