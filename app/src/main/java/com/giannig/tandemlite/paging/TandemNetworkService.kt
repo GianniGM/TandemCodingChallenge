@@ -12,7 +12,7 @@ import java.lang.Exception
 /**
  * todo
  */
-data class TandemException(val errorCode: String, val errorMessage:String): Exception()
+data class TandemException(val errorCode: String, val errorMessage: String) : Exception()
 
 /**
  * todo
@@ -23,25 +23,24 @@ class TandemPagingSource(private val tandemDao: TandemDao) : PagingSource<Int, T
         val position = params.key ?: STARTING_PAGE_INDEX
         return try {
             val dto = TandemNetworkService.getTandemUserFromApis(position)
-            val usersFromApi = dto.response
-            val users = joinByLikes(usersFromApi)
+            val users = joinByLikes(dto.response)
 
-            if(dto.errorCode == null){
+            if (dto.errorCode == null) {
                 LoadResult.Page(
-                    data = users,
+                    data = users.sortedBy { it.referenceCnt },
                     prevKey = if (position == STARTING_PAGE_INDEX) null else position,
                     nextKey = if (users.isEmpty()) null else position + 1
                 )
-            }else{
+            } else {
                 LoadResult.Error(TandemException(dto.errorCode, dto.type))
             }
         } catch (exception: IOException) {
             return LoadResult.Error(exception)
         } catch (exception: HttpException) {
             val users = tandemDao.getTandemUsers()
-            return if(users.isEmpty()){
+            return if (users.isEmpty()) {
                 LoadResult.Error(exception)
-            }else {
+            } else {
                 LoadResult.Page(
                     data = users,
                     prevKey = if (position == STARTING_PAGE_INDEX) null else position,
@@ -52,20 +51,18 @@ class TandemPagingSource(private val tandemDao: TandemDao) : PagingSource<Int, T
     }
 
     private suspend fun joinByLikes(users: List<TandemUser>): List<TandemUser> {
-        val likedUsersFromDb: List<TandemUser>? = tandemDao
+        val likedUsers: Map<Int, List<TandemUser>> = tandemDao
             .getTandemUsers()
-            .groupBy { it.liked }[true]
+            .filter { it.liked }
+            .groupBy { it.id }
 
-       val newUserList = users.map { user ->
-           likedUsersFromDb?.let { likedUsers ->
-               if(user in likedUsers){
-                   user.copy(liked = true)
-               }else{
-                   user.copy(liked = false)
-               }
-           }?: user
-       }
-        return newUserList
+        return users.map { user ->
+            if (user.id in likedUsers) {
+                user.copy(liked = true)
+            } else {
+                user.copy(liked = false)
+            }
+        }
     }
 
     override fun getRefreshKey(state: PagingState<Int, TandemUser>): Int? {

@@ -15,9 +15,6 @@ interface TandemDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(user: TandemUser)
 
-    @Update
-    suspend fun update(vararg user: TandemUser)
-
     @Delete
     suspend fun deleteUserFromDB(user: TandemUser)
 
