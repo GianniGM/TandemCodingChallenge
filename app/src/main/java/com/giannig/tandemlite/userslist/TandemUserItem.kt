@@ -1,6 +1,5 @@
 package com.giannig.tandemlite.userslist
 
-import android.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,7 +20,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.giannig.tandemlite.R.*
 import com.giannig.tandemlite.api.dto.TandemUser
 import com.skydoves.landscapist.glide.GlideImage
 
@@ -32,7 +34,7 @@ fun ProfileCardComposable(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
             .wrapContentWidth()
             .fillMaxWidth()
             .clip(RoundedCornerShape(4.dp))
-            .background(color = colorResource(id = R.color.white))
+            .background(color = colorResource(id = color.white))
             .padding(8.dp),
     ) {
         Row(
@@ -59,8 +61,8 @@ fun ProfilePictureComposable(pictureUrl: String, firstName: String) {
         GlideImage(
             imageModel = pictureUrl,
             contentDescription = firstName,
-            placeHolder = painterResource(com.giannig.tandemlite.R.drawable.user_placeholder),
-            error = painterResource(com.giannig.tandemlite.R.drawable.warning)
+            placeHolder = painterResource(drawable.user_placeholder),
+            error = painterResource(drawable.warning)
         )
     }
 }
@@ -102,13 +104,23 @@ private fun CardHeader(user: TandemUser) {
             val refCountText = user.referenceCnt
                 .takeIf { it > 0 }
                 ?.toString()
-                ?: stringResource(com.giannig.tandemlite.R.string.new_string)
-
-            Text(
-                text = refCountText,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.CenterEnd)
-            )
+            if (refCountText != null) {
+                Text(
+                    text = refCountText,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                )
+            } else {
+                Image(
+                    modifier = Modifier
+                        .size(23.dp)
+                        .align(Alignment.CenterEnd),
+                    painter = painterResource(
+                        id = drawable.new_image
+                    ),
+                    contentDescription = stringResource(id = string.new_string)
+                )
+            }
         }
     }
 }
@@ -119,27 +131,44 @@ private fun CardFooter(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
 
         Column {
             Row(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .align(Alignment.Start)
+                modifier = Modifier.align(Alignment.Start)
             ) {
                 Text(
-                    textAlign = TextAlign.Start,
-                    text = stringResource(com.giannig.tandemlite.R.string.native_language),
-                    modifier = Modifier.padding(start = 0.dp, end = 2.dp)
+                    text = stringResource(string.native_language),
+                    modifier = Modifier
+                        .padding(start = 0.dp, end = 4.dp)
+                        .alignByBaseline()
                 )
                 user.natives.forEach {
-                    Text(text = "$it, ")
+                    Text(
+                        textAlign = TextAlign.Center,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Light,
+                        text = "$it, ".uppercase(),
+                        modifier = Modifier
+                            .padding(start = 0.dp, end = 4.dp)
+                            .alignByBaseline()
+                    )
                 }
             }
 
             Row {
                 Text(
-                    text = stringResource(com.giannig.tandemlite.R.string.learns),
-                    modifier = Modifier.padding(start = 0.dp, end = 4.dp),
+                    text = stringResource(string.learns),
+                    modifier = Modifier
+                        .padding(start = 0.dp, end = 4.dp)
+                        .alignByBaseline(),
                 )
                 user.learns.forEach {
-                    Text(text = "$it, ")
+                    Text(
+                        textAlign = TextAlign.Center,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Light,
+                        text = "$it, ".uppercase(),
+                        modifier = Modifier
+                            .padding(start = 0.dp, end = 4.dp)
+                            .alignByBaseline()
+                    )
                 }
             }
         }
@@ -154,12 +183,12 @@ private fun CardFooter(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
             ) {
                 if (user.liked) {
                     Image(
-                        painterResource(com.giannig.tandemlite.R.drawable.liked),
+                        painterResource(drawable.liked),
                         contentDescription = user.liked.toString()
                     )
                 } else {
                     Image(
-                        painterResource(com.giannig.tandemlite.R.drawable.not_liked),
+                        painterResource(drawable.not_liked),
                         contentDescription = user.liked.toString()
                     )
                 }
