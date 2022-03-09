@@ -116,5 +116,5 @@ and adding a field in the API like this
   }
 ```
 In this case I can check from paging if the limit is reached instead of having a 404.
-I think is better to send a 404 for other reasons like no internet connection, or service is down.
+I think is better to send a 404 for real backend issues, for example, if an endpoint is not working properly.
 From the app side I can handle the exception and showing the data coming from the backend
