@@ -9,8 +9,9 @@ import com.giannig.tandemlite.api.db.TandemDao
 import com.giannig.tandemlite.api.dto.TandemUser
 
 
-//todo adding paging
-//todo adding room
+/**
+ * Repository for [TandemUser]
+ */
 class TandemRepository(
     private val tandemDao: TandemDao
 ) {

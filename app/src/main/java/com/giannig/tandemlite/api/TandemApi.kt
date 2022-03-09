@@ -10,7 +10,7 @@ import retrofit2.http.Path
 const val BASE_URL = "https://tandem2019.web.app"
 
 /**
- * todo
+ * Retrofit interface to call users from tandem apis
  */
 interface TandemApi {
 

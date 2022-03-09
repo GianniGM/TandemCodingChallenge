@@ -10,17 +10,23 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 /**
- * todo add doc
+ * ViewModel for [MainComponentActivity]
  */
 class TandemViewModel(
     private val tandemRepository: TandemRepository
 ) : ViewModel() {
 
+    /**
+     * Gets the list of users
+     */
     val getTandemUsersList: Flow<PagingData<TandemUser>> = tandemRepository
         .getSearchResultStream()
         .flow
         .cachedIn(viewModelScope)
 
+    /**
+     * Save a liked user
+     */
     fun likeUser(userId: TandemUser, liked: Boolean) = viewModelScope.launch {
         tandemRepository.likeUser(userId, liked)
     }

@@ -35,6 +35,9 @@ fun MyApplicationTheme(
     )
 }
 
+/**
+ * Theme for the user card item
+ */
 @Composable
 fun UserCardItem(
     content: @Composable () -> Unit
@@ -59,6 +62,9 @@ fun UserCardItem(
     }
 }
 
+/**
+ * Shows a text with large caps
+ */
 @Composable
 fun LanguageText(
     modifier: Modifier,

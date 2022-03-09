@@ -6,17 +6,18 @@ import androidx.paging.PagingState
 import com.giannig.tandemlite.api.TandemNetworkService
 import com.giannig.tandemlite.api.db.TandemDao
 import com.giannig.tandemlite.api.dto.TandemUser
+import com.giannig.tandemlite.api.TandemApi
 import retrofit2.HttpException
 import java.io.IOException
 import java.lang.Exception
 
 /**
- * todo
+ * Exception handled in case we receive an error from the [TandemApi]
  */
 data class TandemException(val errorCode: String, val errorMessage: String) : Exception()
 
 /**
- * todo
+ * Paging source that manage the paging from the data we receive from the db and the data we receive from the apis
  */
 class TandemPagingSource(private val tandemDao: TandemDao) : PagingSource<Int, TandemUser>() {
 

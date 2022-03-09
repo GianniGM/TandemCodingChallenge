@@ -10,7 +10,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 /**
- * todo
+ * Moshi Setup
  */
 object Moshi {
     val moshi = Moshi
@@ -21,7 +21,7 @@ object Moshi {
 
 
 /**
- * todo
+ * Service that manages api calls
  */
 object TandemNetworkService {
 

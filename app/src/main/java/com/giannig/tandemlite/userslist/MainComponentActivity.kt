@@ -24,8 +24,9 @@ import com.giannig.tandemlite.ui.theme.MyApplicationTheme
 import com.giannig.tandemlite.ui.theme.Purple700
 import kotlinx.coroutines.Job
 
-//todo unit test
-//todo test error handling
+/**
+ * Main activity that shows a list with the users
+ */
 class MainComponentActivity : TandemComponentActivity() {
 
     private val viewModel by lazy {
