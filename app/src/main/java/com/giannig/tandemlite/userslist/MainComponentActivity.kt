@@ -24,8 +24,6 @@ import com.giannig.tandemlite.ui.theme.MyApplicationTheme
 import com.giannig.tandemlite.ui.theme.Purple700
 import kotlinx.coroutines.Job
 
-//todo check readme
-//todo remove unused resource
 //todo unit test
 //todo test error handling
 class MainComponentActivity : TandemComponentActivity() {
@@ -42,23 +40,25 @@ class MainComponentActivity : TandemComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    MainPage(viewModel)
+                    val usersItems: LazyPagingItems<TandemUser> = viewModel
+                        .getTandemUsersList
+                        .collectAsLazyPagingItems()
+
+                    val onLikeUser = { tandemUser: TandemUser ->
+                        viewModel.likeUser(tandemUser, !tandemUser.liked)
+                    }
+                    MainPage(usersItems, onLikeUser)
                 }
             }
         }
     }
 }
 
-
+/**
+ * Main page containing all the possible actions and click listeners
+ */
 @Composable
-fun MainPage(tandemViewModel: TandemViewModel) {
-    val usersItems: LazyPagingItems<TandemUser> = tandemViewModel
-        .getTandemUsersList
-        .collectAsLazyPagingItems()
-
-    val onLikeUser = { tandemUser: TandemUser ->
-        tandemViewModel.likeUser(tandemUser, !tandemUser.liked)
-    }
+fun MainPage(usersItems: LazyPagingItems<TandemUser>, onLikeUser: (TandemUser) -> Job) {
 
     Column {
         TopAppBar(
@@ -71,17 +71,56 @@ fun MainPage(tandemViewModel: TandemViewModel) {
     }
 }
 
+/**
+ * Check the state from the lazy paging items and then shows its possible states.
+ */
 @Composable
 fun TandemUserList(usersItems: LazyPagingItems<TandemUser>, onLikeUser: (TandemUser) -> Job) {
+    usersItems.run {
 
-    if (usersItems.itemCount == 0) {
-        if(usersItems.loadState.refresh is LoadState.Loading){
-            LoadingScreen()
-        }else {
-            RefreshButton(usersItems)
+        //Check the state coming from paging
+        when (val state = loadState.refresh) {
+
+            //is not loading, we have users
+            is LoadState.NotLoading -> ShowUsersList(
+                usersItems = usersItems,
+                onLikeUser = onLikeUser
+            )
+
+            //state is loading we show a loading progress bar
+            LoadState.Loading -> ShowLoadingScreen()
+
+            //An error has occurred we show a toast and then try to refresh
+            is LoadState.Error -> {
+                Toast.makeText(
+                    LocalContext.current,
+                    state.toString(), Toast.LENGTH_LONG
+                ).show()
+                RefreshButton(usersItems)
+            }
+        }
+
+        //load if appending a new page is taking a while
+        if (loadState.append is LoadState.Loading) {
+            ShowLoadingScreen()
         }
     }
+}
 
+/**
+ * Shows the list of users, if the list is empty shows a refresh button
+ */
+@Composable
+private fun ShowUsersList(
+    usersItems: LazyPagingItems<TandemUser>,
+    onLikeUser: (TandemUser) -> Job
+) {
+
+    if (usersItems.itemCount == 0) {
+        RefreshButton(usersItems)
+    }
+
+    //Lazy column is "somehow" the compose version of a recyclerview
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -98,26 +137,11 @@ fun TandemUserList(usersItems: LazyPagingItems<TandemUser>, onLikeUser: (TandemU
             }
         }
     }
-    usersItems.run {
-        if (loadState.append is LoadState.Loading) {
-            LoadingScreen()
-        }
-    }
-    usersItems.run {
-        when (val state = loadState.refresh) {
-            is LoadState.NotLoading,
-            LoadState.Loading -> LoadingScreen()
-            is LoadState.Error -> {
-                RefreshButton(usersItems)
-                Toast.makeText(
-                    LocalContext.current,
-                    state.toString(), Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-    }
 }
 
+/**
+ * Whe show a button to refresh the list of users
+ */
 @Composable
 private fun RefreshButton(usersItems: LazyPagingItems<TandemUser>) {
     Box(
@@ -137,8 +161,11 @@ private fun RefreshButton(usersItems: LazyPagingItems<TandemUser>) {
     }
 }
 
+/**
+ * Screen with a loading indicator
+ */
 @Composable
-private fun LoadingScreen() {
+private fun ShowLoadingScreen() {
     Column(
         modifier = Modifier
             .fillMaxWidth()

@@ -29,6 +29,9 @@ import com.giannig.tandemlite.ui.theme.LanguageText
 import com.giannig.tandemlite.ui.theme.UserCardItem
 import com.skydoves.landscapist.glide.GlideImage
 
+/**
+ * Show the item to put into the lazy list
+ */
 @Composable
 fun ProfileCardComposable(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
     UserCardItem {
@@ -37,6 +40,9 @@ fun ProfileCardComposable(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
     }
 }
 
+/**
+ * Shows the Image section with the user image
+ */
 @Composable
 fun ProfilePictureComposable(pictureUrl: String, firstName: String) {
     Card(
@@ -54,6 +60,9 @@ fun ProfilePictureComposable(pictureUrl: String, firstName: String) {
     }
 }
 
+/**
+ * Shows the component on the right of the user image
+ */
 @Composable
 fun ProfileContentComposable(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
     Column(
@@ -62,22 +71,14 @@ fun ProfileContentComposable(user: TandemUser, onItemClick: (TandemUser) -> Unit
             .padding(start = 16.dp, bottom = 8.dp)
     ) {
         CardHeader(user)
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-        ) {
-            Text(
-                text = user.topic,
-                style = MaterialTheme.typography.body2,
-            )
-        }
-
+        CardBody(user)
         CardFooter(user, onItemClick)
     }
 }
 
+/**
+ * Shows the Header with the user name and the rfc count
+ */
 @Composable
 private fun CardHeader(user: TandemUser) {
     Row(modifier = Modifier.fillMaxWidth()) {
@@ -112,6 +113,26 @@ private fun CardHeader(user: TandemUser) {
     }
 }
 
+/**
+ * Shows the Body of the card with the description of the user
+ */
+@Composable
+private fun CardBody(user: TandemUser) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Text(
+            text = user.topic,
+            style = MaterialTheme.typography.body2,
+        )
+    }
+}
+
+/**
+ * Shows the Footer of the item, with the languages learned, the native and a like button
+ */
 @Composable
 private fun CardFooter(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
     Row {
