@@ -11,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
@@ -19,17 +18,17 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import com.giannig.tandemlite.R
-import com.giannig.tandemlite.TandemActivity
+import com.giannig.tandemlite.TandemComponentActivity
 import com.giannig.tandemlite.api.dto.TandemUser
 import com.giannig.tandemlite.ui.theme.MyApplicationTheme
 import com.giannig.tandemlite.ui.theme.Purple700
+import kotlinx.coroutines.Job
 
 //todo check readme
 //todo remove unused resource
 //todo unit test
-//todo paging
 //todo test error handling
-class MainActivity : TandemActivity() {
+class MainComponentActivity : TandemComponentActivity() {
 
     private val viewModel by lazy {
         createViewModel(TandemViewModel::class.java)
@@ -53,26 +52,34 @@ class MainActivity : TandemActivity() {
 
 @Composable
 fun MainPage(tandemViewModel: TandemViewModel) {
-    Column {
-        TopAppBar(
-            backgroundColor = Purple700,
-            elevation = 16.dp,
-            title = {
-                Text(color = Color.White, text = stringResource(R.string.community_string))
-            },
-        )
-        TandemUserList(tandemViewModel)
-    }
-}
-
-@Composable
-fun TandemUserList(tandemViewModel: TandemViewModel) {
     val usersItems: LazyPagingItems<TandemUser> = tandemViewModel
         .getTandemUsersList
         .collectAsLazyPagingItems()
 
-    if(usersItems.itemCount == 0){
-        RefreshButton(usersItems)
+    val onLikeUser = { tandemUser: TandemUser ->
+        tandemViewModel.likeUser(tandemUser, !tandemUser.liked)
+    }
+
+    Column {
+        TopAppBar(
+            backgroundColor = Purple700,
+            title = {
+                Text(color = Color.White, text = stringResource(R.string.community_string))
+            },
+        )
+        TandemUserList(usersItems, onLikeUser)
+    }
+}
+
+@Composable
+fun TandemUserList(usersItems: LazyPagingItems<TandemUser>, onLikeUser: (TandemUser) -> Job) {
+
+    if (usersItems.itemCount == 0) {
+        if(usersItems.loadState.refresh is LoadState.Loading){
+            LoadingScreen()
+        }else {
+            RefreshButton(usersItems)
+        }
     }
 
     LazyColumn(
@@ -85,14 +92,14 @@ fun TandemUserList(tandemViewModel: TandemViewModel) {
         items(items = usersItems) { user ->
             user?.let {
                 ProfileCardComposable(user) { user ->
-                    tandemViewModel.likeUser(user, !user.liked)
+                    onLikeUser(user)
                     usersItems.refresh()
                 }
             }
         }
     }
     usersItems.run {
-        if(loadState.append is LoadState.Loading){
+        if (loadState.append is LoadState.Loading) {
             LoadingScreen()
         }
     }
@@ -101,8 +108,7 @@ fun TandemUserList(tandemViewModel: TandemViewModel) {
             is LoadState.NotLoading,
             LoadState.Loading -> LoadingScreen()
             is LoadState.Error -> {
-                val lazyList = tandemViewModel.getTandemUsersList.collectAsLazyPagingItems()
-                RefreshButton(lazyList)
+                RefreshButton(usersItems)
                 Toast.makeText(
                     LocalContext.current,
                     state.toString(), Toast.LENGTH_LONG

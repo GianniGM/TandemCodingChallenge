@@ -25,28 +25,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.giannig.tandemlite.R.*
 import com.giannig.tandemlite.api.dto.TandemUser
+import com.giannig.tandemlite.ui.theme.LanguageText
+import com.giannig.tandemlite.ui.theme.UserCardItem
 import com.skydoves.landscapist.glide.GlideImage
 
 @Composable
 fun ProfileCardComposable(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
-    Card(
-        modifier = Modifier
-            .wrapContentWidth()
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(4.dp))
-            .background(color = colorResource(id = color.white))
-            .padding(8.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .wrapContentWidth()
-                .fillMaxWidth()
-                .height(intrinsicSize = IntrinsicSize.Max)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            ProfilePictureComposable(user.pictureUrl, user.firstName)
-            ProfileContentComposable(user, onItemClick)
-        }
+    UserCardItem {
+        ProfilePictureComposable(user.pictureUrl, user.firstName)
+        ProfileContentComposable(user, onItemClick)
     }
 }
 
@@ -128,7 +115,6 @@ private fun CardHeader(user: TandemUser) {
 @Composable
 private fun CardFooter(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
     Row {
-
         Column {
             Row(
                 modifier = Modifier.align(Alignment.Start)
@@ -140,11 +126,8 @@ private fun CardFooter(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
                         .alignByBaseline()
                 )
                 user.natives.forEach {
-                    Text(
-                        textAlign = TextAlign.Center,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Light,
-                        text = "$it, ".uppercase(),
+                    LanguageText(
+                        text = it,
                         modifier = Modifier
                             .padding(start = 0.dp, end = 4.dp)
                             .alignByBaseline()
@@ -160,14 +143,10 @@ private fun CardFooter(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
                         .alignByBaseline(),
                 )
                 user.learns.forEach {
-                    Text(
-                        textAlign = TextAlign.Center,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Light,
-                        text = "$it, ".uppercase(),
+                    LanguageText(
                         modifier = Modifier
                             .padding(start = 0.dp, end = 4.dp)
-                            .alignByBaseline()
+                            .alignByBaseline(), text = it
                     )
                 }
             }
