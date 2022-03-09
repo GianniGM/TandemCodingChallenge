@@ -1,5 +1,6 @@
 package com.giannig.tandemlite.paging
 
+import androidx.annotation.VisibleForTesting
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.giannig.tandemlite.api.TandemNetworkService
@@ -51,18 +52,8 @@ class TandemPagingSource(private val tandemDao: TandemDao) : PagingSource<Int, T
     }
 
     private suspend fun joinByLikes(users: List<TandemUser>): List<TandemUser> {
-        val likedUsers: Map<Int, List<TandemUser>> = tandemDao
-            .getTandemUsers()
-            .filter { it.liked }
-            .groupBy { it.id }
-
-        return users.map { user ->
-            if (user.id in likedUsers) {
-                user.copy(liked = true)
-            } else {
-                user.copy(liked = false)
-            }
-        }
+        val usersFromDB: List<TandemUser> = tandemDao.getTandemUsers()
+        return usersFromDB.joinLikedUsersWith(users)
     }
 
     override fun getRefreshKey(state: PagingState<Int, TandemUser>): Int? {
@@ -75,6 +66,22 @@ class TandemPagingSource(private val tandemDao: TandemDao) : PagingSource<Int, T
     companion object {
         const val STARTING_PAGE_INDEX = 1
         const val NETWORK_PAGE_SIZE = 20
+
+        @VisibleForTesting
+        fun List<TandemUser>.joinLikedUsersWith(users: List<TandemUser>): List<TandemUser> {
+            val likedUsers = this
+                .filter { it.liked }
+                .groupBy { it.id }
+
+            return users.map { user ->
+                if (user.id in likedUsers) {
+                    user.copy(liked = true)
+                } else {
+                    user.copy(liked = false)
+                }
+            }
+        }
+
     }
 
 }
