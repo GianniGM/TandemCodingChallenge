@@ -2,13 +2,16 @@ package com.giannig.tandemlite.paging
 
 import com.giannig.tandemlite.api.dto.TandemUser
 import com.giannig.tandemlite.paging.TandemPagingSource.Companion.joinLikedUsersWith
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
+import org.junit.Assert.*
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.BlockJUnit4ClassRunner
 
+@RunWith(BlockJUnit4ClassRunner::class)
 class TandemPagingSourceTest{
 
     @Test
-    fun `join empty list from api and not empty list from db`() {
+    fun `join empty list from api and not empty list from db, empty list returned`() {
         //Given
         val usersFromDB = usersFromDb
 
@@ -16,7 +19,7 @@ class TandemPagingSourceTest{
         val usersFromApi = emptyList<TandemUser>()
 
         //Then
-        assertEquals(usersFromDB.joinLikedUsersWith(usersFromApi), usersFromDB)
+        assertEquals(usersFromDB.joinLikedUsersWith(usersFromApi), emptyList<TandemUser>())
     }
 
     @Test
