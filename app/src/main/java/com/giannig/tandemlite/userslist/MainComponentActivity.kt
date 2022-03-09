@@ -1,8 +1,10 @@
 package com.giannig.tandemlite.userslist
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
@@ -46,7 +48,8 @@ class MainComponentActivity : TandemComponentActivity() {
                         .collectAsLazyPagingItems()
 
                     val onLikeUser = { tandemUser: TandemUser ->
-                        viewModel.likeUser(tandemUser, !tandemUser.liked)
+                        Log.d("BANANA", "$tandemUser")
+                        viewModel.likeUser(tandemUser, tandemUser.liked)
                     }
                     MainPage(usersItems, onLikeUser)
                 }
@@ -64,10 +67,26 @@ fun MainPage(usersItems: LazyPagingItems<TandemUser>, onLikeUser: (TandemUser) -
     Column {
         TopAppBar(
             backgroundColor = Purple700,
-            title = {
-                Text(color = Color.White, text = stringResource(R.string.community_string))
-            },
-        )
+        ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    color = Color.White,
+                    text = stringResource(R.string.community_string),
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(horizontal = 16.dp)
+                )
+
+                Text(
+                    color = Color.White,
+                    text = stringResource(R.string.refresh_text),
+                    modifier = Modifier
+                        .clickable { usersItems.refresh() }
+                        .align(Alignment.CenterEnd)
+                        .padding(horizontal = 16.dp)
+                )
+            }
+        }
         TandemUserList(usersItems, onLikeUser)
     }
 }
@@ -93,11 +112,13 @@ fun TandemUserList(usersItems: LazyPagingItems<TandemUser>, onLikeUser: (TandemU
 
             //An error has occurred we show a toast and then try to refresh
             is LoadState.Error -> {
-                Toast.makeText(
-                    LocalContext.current,
-                    state.toString(), Toast.LENGTH_LONG
-                ).show()
-                RefreshButton(usersItems)
+                if (!state.endOfPaginationReached) {
+                    Toast.makeText(
+                        LocalContext.current,
+                        state.toString(), Toast.LENGTH_LONG
+                    ).show()
+                    RefreshButton(usersItems)
+                }
             }
         }
 
@@ -131,10 +152,7 @@ private fun ShowUsersList(
     ) {
         items(items = usersItems) { user ->
             user?.let {
-                ProfileCardComposable(user) { user ->
-                    onLikeUser(user)
-                    usersItems.refresh()
-                }
+                ProfileCardComposable(user, onLikeUser)
             }
         }
     }

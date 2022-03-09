@@ -98,3 +98,23 @@ It helps to keep the main or developed branch healthy whenever new code is merge
 
 Unfortunately, I have a very poor experience with UI tests, I'm not used to writing them in my daily life, usually I use appium for them or just record the instrumentation test using android studio.
 
+### Feedbacks
+
+I find that sending a 404 Error when reaching the end of pagination, is not really a good idea.
+I'd preferred having an api with the following link
+```
+https://tandem2019.web.app/api/{page_number}/community.json
+```
+and adding a field in the API like this
+
+```
+  {
+    "response" : []
+    "errorCode": null,
+    "type": "error"
+    "limit_reached": true
+  }
+```
+In this case I can check from paging if the limit is reached instead of having a 404.
+I think is better to send a 404 for other reasons like no internet connection, or service is down.
+From the app side I can handle the exception and showing the data coming from the backend

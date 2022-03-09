@@ -2,38 +2,35 @@ package com.giannig.tandemlite.userslist
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.giannig.tandemlite.R.*
 import com.giannig.tandemlite.api.dto.TandemUser
 import com.giannig.tandemlite.ui.theme.LanguageText
 import com.giannig.tandemlite.ui.theme.UserCardItem
 import com.skydoves.landscapist.glide.GlideImage
+import kotlinx.coroutines.Job
 
 /**
  * Show the item to put into the lazy list
  */
 @Composable
-fun ProfileCardComposable(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
+fun ProfileCardComposable(user: TandemUser, onItemClick: (TandemUser) -> Job) {
     UserCardItem {
         ProfilePictureComposable(user.pictureUrl, user.firstName)
         ProfileContentComposable(user, onItemClick)
@@ -64,7 +61,7 @@ fun ProfilePictureComposable(pictureUrl: String, firstName: String) {
  * Shows the component on the right of the user image
  */
 @Composable
-fun ProfileContentComposable(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
+fun ProfileContentComposable(user: TandemUser, onItemClick: (TandemUser) -> Job) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -134,7 +131,7 @@ private fun CardBody(user: TandemUser) {
  * Shows the Footer of the item, with the languages learned, the native and a like button
  */
 @Composable
-private fun CardFooter(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
+private fun CardFooter(user: TandemUser, onItemClick: (TandemUser) -> Job) {
     Row {
         Column {
             Row(
@@ -174,14 +171,22 @@ private fun CardFooter(user: TandemUser, onItemClick: (TandemUser) -> Unit) {
         }
 
         Column(modifier = Modifier.fillMaxSize()) {
+            val userLiked = remember {
+                mutableStateOf(user.liked)
+            }
+
             Row(
                 modifier = Modifier
                     .wrapContentWidth()
                     .size(16.dp)
-                    .clickable { onItemClick(user) }
+                    .clickable {
+                        val newUser = user.copy(liked = !userLiked.value)
+                        userLiked.value = newUser.liked
+                        onItemClick(newUser)
+                    }
                     .align(Alignment.End)
             ) {
-                if (user.liked) {
+                if (userLiked.value) {
                     Image(
                         painterResource(drawable.liked),
                         contentDescription = user.liked.toString()

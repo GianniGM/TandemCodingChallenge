@@ -16,38 +16,34 @@ class TandemPagingSource(private val tandemDao: TandemDao) : PagingSource<Int, T
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, TandemUser> {
         val position = params.key ?: STARTING_PAGE_INDEX
-        return try {
-            val dto = TandemNetworkService.getTandemUserFromApis(position)
-            val users = joinByLikes(dto.response)
+        val usersFromDb = tandemDao.getTandemUsers()
 
-            if (dto.errorCode == null) {
+        return try {
+            val response = TandemNetworkService.getTandemUserFromApis(position)
+            val (usersFromApi, errorCode) = response
+
+            if (errorCode == null && usersFromApi.isNotEmpty()) {
+
+                val users = usersFromDb.putLikedUsersInto(usersFromApi)
+                tandemDao.insertAll(users)
+
                 LoadResult.Page(
-                    data = users.sortedBy { it.referenceCnt },
-                    prevKey = if (position == STARTING_PAGE_INDEX) null else position,
+                    data = users,
+                    prevKey = if (position == STARTING_PAGE_INDEX) null else position - 1,
                     nextKey = if (users.isEmpty()) null else position + 1
                 )
             } else {
-                LoadResult.Error(TandemException(dto.errorCode, dto.type))
+                LoadResult.Page(
+                    data = usersFromDb,
+                    prevKey = if (position == STARTING_PAGE_INDEX) null else position - 1,
+                    nextKey = if (usersFromDb.isEmpty()) null else position + 1
+                )
             }
         } catch (exception: IOException) {
             return LoadResult.Error(exception)
         } catch (exception: HttpException) {
-            val users = tandemDao.getTandemUsers()
-            return if (users.isEmpty()) {
-                LoadResult.Error(exception)
-            } else {
-                LoadResult.Page(
-                    data = users,
-                    prevKey = if (position == STARTING_PAGE_INDEX) null else position,
-                    nextKey = if (users.isEmpty()) null else position + 1
-                )
-            }
+            return LoadResult.Error(exception)
         }
-    }
-
-    private suspend fun joinByLikes(users: List<TandemUser>): List<TandemUser> {
-        val usersFromDB: List<TandemUser> = tandemDao.getTandemUsers()
-        return usersFromDB.joinLikedUsersWith(users)
     }
 
     override fun getRefreshKey(state: PagingState<Int, TandemUser>): Int? {
@@ -62,7 +58,7 @@ class TandemPagingSource(private val tandemDao: TandemDao) : PagingSource<Int, T
         const val NETWORK_PAGE_SIZE = 20
 
         @VisibleForTesting
-        fun List<TandemUser>.joinLikedUsersWith(users: List<TandemUser>): List<TandemUser> {
+        fun List<TandemUser>.putLikedUsersInto(users: List<TandemUser>): List<TandemUser> {
             val likedUsers = this
                 .filter { it.liked }
                 .groupBy { it.id }

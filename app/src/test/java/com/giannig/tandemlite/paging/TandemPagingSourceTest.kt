@@ -1,7 +1,7 @@
 package com.giannig.tandemlite.paging
 
 import com.giannig.tandemlite.api.dto.TandemUser
-import com.giannig.tandemlite.paging.TandemPagingSource.Companion.joinLikedUsersWith
+import com.giannig.tandemlite.paging.TandemPagingSource.Companion.putLikedUsersInto
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,7 +19,7 @@ class TandemPagingSourceTest{
         val usersFromApi = emptyList<TandemUser>()
 
         //Then
-        assertEquals(usersFromDB.joinLikedUsersWith(usersFromApi), emptyList<TandemUser>())
+        assertEquals(usersFromDB.putLikedUsersInto(usersFromApi), emptyList<TandemUser>())
     }
 
     @Test
@@ -31,7 +31,7 @@ class TandemPagingSourceTest{
         val usersFromApi = usersFromApi
 
         //Then
-        assertEquals(usersFromDB.joinLikedUsersWith(usersFromApi), usersFromApi)
+        assertEquals(usersFromDB.putLikedUsersInto(usersFromApi), usersFromApi)
     }
 
     @Test
@@ -43,7 +43,7 @@ class TandemPagingSourceTest{
         val usersFromApi = usersFromApi
 
         //Then
-        assertEquals(usersFromDB.joinLikedUsersWith(usersFromApi), expectedResult)
+        assertEquals(usersFromDB.putLikedUsersInto(usersFromApi), expectedResult)
     }
 
     companion object {

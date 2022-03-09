@@ -27,6 +27,6 @@ class TandemRepository(
 
     suspend fun likeUser(user: TandemUser, liked: Boolean){
         val updatedUser = user.copy(liked = liked)
-        tandemDao.insert(updatedUser)
+        tandemDao.update(updatedUser)
     }
 }

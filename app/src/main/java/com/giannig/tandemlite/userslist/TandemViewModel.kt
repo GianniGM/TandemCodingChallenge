@@ -27,8 +27,8 @@ class TandemViewModel(
     /**
      * Save a liked user
      */
-    fun likeUser(userId: TandemUser, liked: Boolean) = viewModelScope.launch {
-        tandemRepository.likeUser(userId, liked)
+    fun likeUser(user: TandemUser, liked: Boolean) = viewModelScope.launch {
+        tandemRepository.likeUser(user, liked)
     }
 
 }

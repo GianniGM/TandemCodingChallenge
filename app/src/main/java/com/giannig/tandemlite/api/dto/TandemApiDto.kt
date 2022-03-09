@@ -5,7 +5,7 @@ import androidx.annotation.Keep
 
 @Keep
 data class TandemApiDto(
-    val errorCode: String?, // null
     val response: List<TandemUser>,
+    val errorCode: String?, // null
     val type: String // success
 )
