@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -117,7 +118,9 @@ fun TandemUserList(usersItems: LazyPagingItems<TandemUser>, onLikeUser: (TandemU
                         LocalContext.current,
                         state.toString(), Toast.LENGTH_LONG
                     ).show()
-                    RefreshButton(usersItems)
+                    RefreshButton {
+                        usersItems.refresh()
+                    }
                 }
             }
         }
@@ -132,6 +135,22 @@ fun TandemUserList(usersItems: LazyPagingItems<TandemUser>, onLikeUser: (TandemU
 /**
  * Shows the list of users, if the list is empty shows a refresh button
  */
+@Preview(showBackground = true)
+@Composable
+fun ShowUserItemPreview() {
+    val mockedUser = TandemUser(
+        id = 1,
+        firstName = "James",
+        learns = listOf("DE, EN"),
+        natives = listOf("IT"),
+        pictureUrl = "https://www.pngpix.com/wp-content/uploads/2016/03/Bunch-of-Bananas-PNG-image.png",
+        referenceCnt = 0,
+        topic = "I am james",
+    )
+
+    ProfileCardComposable(user = mockedUser, onItemClick = { Job() })
+}
+
 @Composable
 private fun ShowUsersList(
     usersItems: LazyPagingItems<TandemUser>,
@@ -139,7 +158,9 @@ private fun ShowUsersList(
 ) {
 
     if (usersItems.itemCount == 0) {
-        RefreshButton(usersItems)
+        RefreshButton {
+            usersItems.refresh()
+        }
     }
 
     //Lazy column is "somehow" the compose version of a recyclerview
@@ -161,8 +182,14 @@ private fun ShowUsersList(
 /**
  * Whe show a button to refresh the list of users
  */
+@Preview(showBackground = true)
 @Composable
-private fun RefreshButton(usersItems: LazyPagingItems<TandemUser>) {
+fun ShowRefreshStatePreview() {
+    RefreshButton {}
+}
+
+@Composable
+private fun RefreshButton(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -173,8 +200,9 @@ private fun RefreshButton(usersItems: LazyPagingItems<TandemUser>) {
                 .wrapContentSize()
                 .align(Alignment.Center),
             onClick = {
-                usersItems.refresh()
-            }) {
+                onClick()
+            }
+        ) {
             Text(text = stringResource(R.string.refresh_text))
         }
     }
@@ -183,6 +211,12 @@ private fun RefreshButton(usersItems: LazyPagingItems<TandemUser>) {
 /**
  * Screen with a loading indicator
  */
+@Preview(showBackground = true)
+@Composable
+fun ShowLoadingScreenPreview() {
+    ShowLoadingScreen()
+}
+
 @Composable
 private fun ShowLoadingScreen() {
     Column(

@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.giannig.tandemlite.R.*
 import com.giannig.tandemlite.api.dto.TandemUser
@@ -25,6 +26,22 @@ import com.giannig.tandemlite.ui.theme.LanguageText
 import com.giannig.tandemlite.ui.theme.UserCardItem
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.Job
+
+@Preview(showBackground = true)
+@Composable
+fun ShowUserItem() {
+    val mockedUser = TandemUser(
+        id = 1,
+        firstName = "James",
+        learns = listOf("DE, EN"),
+        natives = listOf("IT"),
+        pictureUrl = "https://www.pngpix.com/wp-content/uploads/2016/03/Bunch-of-Bananas-PNG-image.png",
+        referenceCnt = 0,
+        topic = "I am james",
+    )
+
+    ProfileCardComposable(user = mockedUser, onItemClick = { Job() })
+}
 
 /**
  * Show the item to put into the lazy list
