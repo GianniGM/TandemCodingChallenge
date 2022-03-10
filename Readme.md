@@ -3,7 +3,7 @@
 ## MVVM
 
 Using jetpack means embracing the new google way of making Android apps, which means using Model View ViewModel.
-* Model: the Repository and everything needed to populate the repository
+* Model: the Repository and everything needed to populate it
 * View: Our View is represented by the Activity and all the Jetpack compose UI logic
 * ViewModel: in this case, it is just a glue code between the Activity and the Model
 
@@ -11,11 +11,11 @@ Using jetpack means embracing the new google way of making Android apps, which m
 
 Here is a list of libraries I have used to implement the app
 
-### (Why???) Compose
+### Compose
 
 I like challenges, a coding challenge is also a way to use new technologies that I don't use in my daily life.
 Since using Jetpack was nice to have in this, I have decided to use Compose.
-I see a lot of potential in implementing declarative UI
+I see a lot of potential in implementing declarative UI and using actual Kotlin to build it.
 
 ### Flow
 
@@ -34,7 +34,7 @@ Paging is the library if the need is to scroll between pages and provide a feeli
 Paging is perfect when it is needed to make API calls to request the following request meanwhile the user is scrolling through items in a list.
 
 
-## Why no Unit tests?
+## Why few Unit tests implemented
 
 I love unit tests, but in this case, there is nothing to do,
 since I'm using paging everything is done by it.
@@ -43,7 +43,7 @@ received from the API, to update the "like" field.
 
 ## Challenges
 
-### Using paging
+### Using Paging
 
 It's been a while since I don't use paging, I see since the last time I have used it, lots of things have changed.
 I've made a mistake during the development that caught me a bit unprepared. Since I wasn't very experienced with Paging, I thought was a good idea to add paging only after implementing the API calls and the DB.
