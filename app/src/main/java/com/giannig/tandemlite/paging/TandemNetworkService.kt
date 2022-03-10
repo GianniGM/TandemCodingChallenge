@@ -8,6 +8,7 @@ import com.giannig.tandemlite.api.db.TandemDao
 import com.giannig.tandemlite.api.dto.TandemUser
 import retrofit2.HttpException
 import java.io.IOException
+import java.net.UnknownHostException
 
 /**
  * Paging source that manage the paging from the data we receive from the db and the data we receive from the apis
@@ -39,9 +40,16 @@ class TandemPagingSource(private val tandemDao: TandemDao) : PagingSource<Int, T
                     nextKey = if (usersFromDb.isEmpty()) null else position + 1
                 )
             }
-        } catch (exception: IOException) {
-            return LoadResult.Error(exception)
+        } catch (exception: UnknownHostException){
+            // offline mode, we show the stored users
+            return LoadResult.Page(
+                data = usersFromDb,
+                prevKey = if (position == STARTING_PAGE_INDEX) null else position - 1,
+                nextKey = if (usersFromDb.isEmpty()) null else position + 1
+            )
         } catch (exception: HttpException) {
+            return LoadResult.Error(exception)
+        } catch (exception: IOException){
             return LoadResult.Error(exception)
         }
     }
